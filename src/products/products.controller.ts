@@ -43,7 +43,11 @@ export class ProductsController {
 
   @Delete(':id')
   deleteOne(@Param('id') id: string) {
-    return this.productClient.send({ cmd: 'delete_product' }, { id });
+    return this.productClient.send({ cmd: 'delete_product' }, { id }).pipe(
+      catchError((error) => {
+        throw new RpcException(error);
+      }),
+    );
   }
 
   @Patch(':id')
@@ -51,9 +55,12 @@ export class ProductsController {
     @Param('id') id: string,
     @Body() updateProductDto: UpdateProductDto,
   ) {
-    return this.productClient.send(
-      { cmd: 'update_product' },
-      { id: +id, ...updateProductDto },
-    );
+    return this.productClient
+      .send({ cmd: 'update_product' }, { id: +id, ...updateProductDto })
+      .pipe(
+        catchError((error) => {
+          throw new RpcException(error);
+        }),
+      );
   }
 }
