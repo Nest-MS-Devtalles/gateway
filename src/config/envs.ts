@@ -1,19 +1,25 @@
 import 'dotenv/config';
 import * as joi from 'joi';
 
-// 1. Define the shape of the environment variables
+//* 1. Define the shape of the environment variables
 interface IEnvVars {
   PORT: number;
+  // products-ms
   PRODUCTS_MS_HOST: string;
   PRODUCTS_MS_PORT: number;
+  // orders ms
+  ORDERS_MS_HOST: string;
+  ORDERS_MS_PORT: number;
 }
 
-// 2. Validate the environment variables
+//* 2. Validate the environment variables
 const envVarsSchema = joi
   .object({
     PORT: joi.number().required(),
     PRODUCTS_MS_HOST: joi.string().required(),
     PRODUCTS_MS_PORT: joi.number().required(),
+    ORDERS_MS_HOST: joi.string().required(),
+    ORDERS_MS_PORT: joi.number().required(),
   })
   .unknown(true); // Allow unknown properties
 
@@ -25,9 +31,11 @@ if (error) {
 
 const envVars: IEnvVars = value;
 
-// 3. Export the environment variables
+//* 3. Export the environment variables
 export const envs = {
   port: envVars.PORT,
   productsMsHost: envVars.PRODUCTS_MS_HOST,
   productsMsPort: envVars.PRODUCTS_MS_PORT,
+  ordersMsHost: envVars.ORDERS_MS_HOST,
+  ordersMsPort: envVars.ORDERS_MS_PORT,
 };
