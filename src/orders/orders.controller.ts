@@ -1,35 +1,33 @@
 import {
+  Body,
   Controller,
   Get,
-  Post,
-  Body,
-  Param,
   Inject,
+  Param,
   ParseUUIDPipe,
-  Query,
   Patch,
+  Post,
+  Query,
 } from '@nestjs/common';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 
-import { ORDER_SERVICE } from '../config';
-import { CreateOrderDto, OrderPaginationDto, StatusDto } from './dto';
 import { catchError } from 'rxjs';
 import { PaginationDto } from '../common';
+import { NATS_SERVICE } from '../config';
+import { CreateOrderDto, OrderPaginationDto, StatusDto } from './dto';
 
 @Controller('orders')
 export class OrdersController {
-  constructor(
-    @Inject(ORDER_SERVICE) private readonly ordersClient: ClientProxy,
-  ) {}
+  constructor(@Inject(NATS_SERVICE) private readonly client: ClientProxy) {}
 
   @Post()
   create(@Body() createOrderDto: CreateOrderDto) {
-    return this.ordersClient.send({ cmd: 'create_order' }, createOrderDto);
+    return this.client.send({ cmd: 'create_order' }, createOrderDto);
   }
 
   @Get()
   findAll(@Query() orderPaginationDto: OrderPaginationDto) {
-    return this.ordersClient
+    return this.client
       .send({ cmd: 'find_all_orders' }, orderPaginationDto)
       .pipe(
         catchError((error) => {
@@ -40,7 +38,7 @@ export class OrdersController {
 
   @Get('id/:id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.ordersClient.send({ cmd: 'find_one_order' }, { id }).pipe(
+    return this.client.send({ cmd: 'find_one_order' }, { id }).pipe(
       catchError((error) => {
         throw new RpcException(error);
       }),
@@ -52,7 +50,7 @@ export class OrdersController {
     @Param() statusDto: StatusDto,
     @Query() paginationDto: PaginationDto,
   ) {
-    return this.ordersClient
+    return this.client
       .send(
         { cmd: 'find_all_orders' },
         { ...paginationDto, status: statusDto.status },
@@ -69,7 +67,7 @@ export class OrdersController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() statusDto: StatusDto,
   ) {
-    return this.ordersClient
+    return this.client
       .send({ cmd: 'change_order_status' }, { id, status: statusDto.status })
       .pipe(
         catchError((error) => {
