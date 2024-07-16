@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 
+import { ORDER_SERVICE } from '../config';
 import { OrdersController } from './orders.controller';
-import { envs, ORDER_SERVICE } from '../config';
 
 @Module({
   imports: [
@@ -11,8 +11,8 @@ import { envs, ORDER_SERVICE } from '../config';
         name: ORDER_SERVICE,
         transport: Transport.TCP,
         options: {
-          host: envs.ordersMsHost,
-          port: envs.ordersMsPort,
+          // host: envs.ordersMsHost,
+          // port: envs.ordersMsPort,
         },
       },
     ]),
