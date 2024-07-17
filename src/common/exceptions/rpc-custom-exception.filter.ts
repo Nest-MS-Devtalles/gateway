@@ -1,4 +1,9 @@
-import { Catch, ArgumentsHost, ExceptionFilter } from '@nestjs/common';
+import {
+  ArgumentsHost,
+  Catch,
+  ExceptionFilter,
+  HttpStatus,
+} from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
 
 @Catch(RpcException)
@@ -9,18 +14,36 @@ export class RpcCustpmExceptionFilter implements ExceptionFilter {
 
     const rpcError = exception.getError();
 
+    if (rpcError.toString().includes('Timeout')) {
+      return response.status(HttpStatus.GATEWAY_TIMEOUT).json({
+        status: HttpStatus.GATEWAY_TIMEOUT,
+        message: 'Timeout error',
+      });
+    }
+
+    if (rpcError.toString().includes('Empty response')) {
+      return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: rpcError
+          .toString()
+          .substring(0, rpcError.toString().indexOf('(') - 1),
+      });
+    }
+
     if (
       typeof rpcError === 'object' &&
       'status' in rpcError &&
       'message' in rpcError
     ) {
-      const status = isNaN(+rpcError.status) ? 400 : +rpcError.status;
+      const status = isNaN(+rpcError.status)
+        ? HttpStatus.BAD_REQUEST
+        : +rpcError.status;
       return response.status(status).json(rpcError);
     }
 
-    response.status(400).json({
-      status: 400,
-      message: rpcError,
+    response.status(HttpStatus.BAD_REQUEST).json({
+      status: HttpStatus.BAD_REQUEST,
+      message: rpcError || 'valdo rules',
     });
   }
 }
