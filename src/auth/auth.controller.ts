@@ -17,7 +17,7 @@ export class AuthController {
   }
 
   @Post('verify')
-  verifyUser() {
-    return this.client.send('auth.verify.user', {});
+  verifyToken() {
+    return this.client.send('auth.verify.token', {});
   }
 }
