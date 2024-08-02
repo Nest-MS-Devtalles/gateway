@@ -1,23 +1,39 @@
-import { Controller, Inject, Post } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
+import { Body, Controller, Get, Inject, Post, UseGuards } from '@nestjs/common';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
+
+import { catchError } from 'rxjs';
 import { NATS_SERVICE } from '../config';
+import { Token, User } from './decorators';
+import { LoginUserDto, RegisterUserDto } from './dtos';
+import { AuthGuard } from './gards/auth.gard';
+import { CurrentUser } from './interfaces/current-user.interface';
 
 @Controller('auth')
 export class AuthController {
   constructor(@Inject(NATS_SERVICE) private readonly client: ClientProxy) {}
 
   @Post('register')
-  registerUser() {
-    return this.client.send('auth.register.user', {});
+  registerUser(@Body() registerUserDto: RegisterUserDto) {
+    return this.client.send('auth.register.user', registerUserDto).pipe(
+      catchError((error) => {
+        throw new RpcException(error);
+      }),
+    );
   }
 
   @Post('login')
-  loginUser() {
-    return this.client.send('auth.login.user', {});
+  loginUser(@Body() loginUserDto: LoginUserDto) {
+    return this.client.send('auth.login.user', loginUserDto).pipe(
+      catchError((error) => {
+        throw new RpcException(error);
+      }),
+    );
   }
 
-  @Post('verify')
-  verifyToken() {
-    return this.client.send('auth.verify.token', {});
+  @UseGuards(AuthGuard)
+  @Get('verify')
+  verifyToken(@User() user: CurrentUser, @Token() token: string) {
+    return { user, token };
+    // return this.client.send('auth.verify.token', {});
   }
 }
